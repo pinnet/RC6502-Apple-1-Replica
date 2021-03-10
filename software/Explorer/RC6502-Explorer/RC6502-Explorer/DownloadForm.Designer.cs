@@ -149,20 +149,24 @@ namespace RC6502_Explorer
             // 
             // startTextBox
             // 
+            this.startTextBox.Enabled = false;
             this.startTextBox.Location = new System.Drawing.Point(70, 59);
             this.startTextBox.Name = "startTextBox";
             this.startTextBox.Size = new System.Drawing.Size(124, 20);
             this.startTextBox.TabIndex = 12;
             this.startTextBox.Text = "0";
+            this.startTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.startTextBox_KeyPress);
             this.startTextBox.Validated += new System.EventHandler(this.startTextBox_Validated);
             // 
             // endTextBox
             // 
+            this.endTextBox.Enabled = false;
             this.endTextBox.Location = new System.Drawing.Point(232, 59);
             this.endTextBox.Name = "endTextBox";
             this.endTextBox.Size = new System.Drawing.Size(129, 20);
             this.endTextBox.TabIndex = 13;
             this.endTextBox.Text = "0";
+            this.endTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.endTextBox_KeyPress);
             this.endTextBox.Validated += new System.EventHandler(this.endTextBox_Validated);
             // 
             // DownloadForm

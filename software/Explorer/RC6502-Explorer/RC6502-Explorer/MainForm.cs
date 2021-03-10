@@ -22,7 +22,6 @@ namespace RC6502_Explorer
         private string _selectedPort = "COM1";
         private SerialPort _comPort;
         private bool _portConnected = false;
-
         private bool _downloading = false;
         private string _filename =  "";
 
@@ -89,24 +88,21 @@ namespace RC6502_Explorer
         {
             richTextBox1.BackColor = Settings.Default.BackgroundColour;
             richTextBox1.ForeColor = Settings.Default.ForegroundColour;
-
             richTextBox1.SelectAll();
             richTextBox1.Font = Settings.Default.Font;
             richTextBox1.DeselectAll();
         }
 
-        private void DownloadForm_DownloadActionEvent(string arg1, DownloadType arg2, int arg3, int arg4)
+        private void DownloadForm_DownloadActionEvent(string file, DownloadType type, uint start, uint end)
         {
-            toolStripStatusLabel4.Text = "Saving " + arg1;
+            toolStripStatusLabel4.Text = "Saving " + file;
             if (!backgroundWorker1.IsBusy)
             {
                 backgroundWorker1.RunWorkerAsync();
             }
-
-            _filename = arg1;
+            _filename = file;
             _downloading = true;
-
-            switch (arg2)
+            switch (type)
             {
                 case DownloadType.Basic:
                     break;
@@ -115,27 +111,23 @@ namespace RC6502_Explorer
                 case DownloadType.Binary:
                     break;
                 case DownloadType.HexDump:
-                    slowWriteToPort(arg3.ToString() + "." + arg4.ToString()+"\n");
+                    slowWriteToPort(start.ToString("X4") + "." + end.ToString("X4")+"\n");
                     break;
                 default:
                     break;
             }
-
-
         }
         private void endSave()
         {
             backgroundWorker1.CancelAsync();
             toolStripStatusLabel4.Text = "";
             _downloading = false;
-
         }
         private void saveText(string txt)
         {
              var handle =  File.AppendText(_filename);
              handle.Write(txt);
              handle.Close();
-
         }
         private void MainForm_portStatusChangeEvent(string obj)
         {
@@ -147,7 +139,6 @@ namespace RC6502_Explorer
             _selectedPort = obj;
             richTextBox1.Clear();
             toolStripStatusLabel1.Text = obj + ":";
-            
             if (connect(obj))
             { 
                 Settings.Default.LastPort = obj; 
@@ -156,7 +147,6 @@ namespace RC6502_Explorer
             { 
                 toolStripStatusLabel2.Text = "ERROR"; 
             }
-            
         }
 
         private void disconnect()
@@ -189,15 +179,12 @@ namespace RC6502_Explorer
         }
         private void updateText(string txt) 
         {
-     
-            richTextBox1.AppendText(txt.Replace('\r',' '));
 
+            richTextBox1.AppendText(txt.Replace('\r', ' '));
             if (_downloading)
             {
                 saveText(txt.Replace('\r', ' '));
-               
             }  
-        
         }
         private void _comPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
@@ -242,20 +229,13 @@ namespace RC6502_Explorer
             else { connect(_selectedPort); }
         }
 
-        private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
-        {
-           
-        }
-
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-
+        { 
             ThemeForm.UpdateAppearance -= ThemeForm_UpdateAppearance;
             backgroundWorker1.DoWork -= BackgroundWorker1_DoWork;
             backgroundWorker1.ProgressChanged -= BackgroundWorker1_ProgressChanged;
             DownloadForm.DownloadActionEvent -= DownloadForm_DownloadActionEvent;
             portStatusChangeEvent -= MainForm_portStatusChangeEvent;
-
             backgroundWorker1.CancelAsync();
             Settings.Default.Save();
         }
@@ -266,21 +246,16 @@ namespace RC6502_Explorer
         }
 
         private void pasteToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
+        { 
             slowWriteToPort(Clipboard.GetText());
-           
-
         }
-        private void slowWriteToPort(string text) {
-
-
+        private void slowWriteToPort(string text) 
+        {
             char[] data = text.ToCharArray();
             for (int i = 0; i < data.Length; i++)
             {
                 if (data[i] == '\n')
                 {
-
                     _comPort.WriteLine('\r'.ToString());
                     Thread.Sleep(100);
                 }
@@ -289,9 +264,7 @@ namespace RC6502_Explorer
                     _comPort.Write(data[i].ToString());
                     Thread.Sleep(60);
                 }
-                
             }
-
         }
         private void clearToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -342,18 +315,14 @@ namespace RC6502_Explorer
 
         private void richTextBox1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
-
             KeysConverter kc = new KeysConverter();
             switch (e.KeyData)
             {
-
                 case Keys.Tab:
                     _comPort.Write(' '.ToString());
                     break;
-                default:
-                    
+                default:       
                     break;
-
             }
         }
 
@@ -369,11 +338,6 @@ namespace RC6502_Explorer
                 }
             }
             e.Handled = true;
-        }
-
-        private void toolStripProgressBar1_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
