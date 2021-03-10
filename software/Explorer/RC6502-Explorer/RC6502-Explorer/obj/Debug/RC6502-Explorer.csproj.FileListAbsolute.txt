@@ -1,0 +1,13 @@
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\bin\Debug\RC6502-Explorer.exe.config
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\bin\Debug\RC6502-Explorer.exe
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\bin\Debug\RC6502-Explorer.pdb
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\obj\Debug\RC6502-Explorer.csprojAssemblyReference.cache
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\obj\Debug\RC6502_Explorer.Properties.Resources.resources
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\obj\Debug\RC6502-Explorer.csproj.GenerateResource.cache
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\obj\Debug\RC6502-Explorer.csproj.CoreCompileInputs.cache
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\obj\Debug\RC6502-Explorer.exe
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\obj\Debug\RC6502-Explorer.pdb
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\obj\Debug\RC6502_Explorer.MainForm.resources
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\obj\Debug\RC6502_Explorer.About.resources
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\obj\Debug\RC6502_Explorer.DownloadForm.resources
+D:\dev\RC6502-Apple-1-Replica\software\Explorer\RC6502-Explorer\RC6502-Explorer\obj\Debug\RC6502_Explorer.ThemeForm.resources
