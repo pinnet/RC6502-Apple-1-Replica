@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name RC6502-VDU-rescue)(type Legacy)(uri "${KIPRJMOD}/RC6502 VDU-rescue.lib")(options "")(descr ""))
+  (lib (name vdu_port)(type Legacy)(uri ${KIPRJMOD}/vdu_port.lib)(options "")(descr ""))
+)
