@@ -23,8 +23,8 @@ namespace RC6502_Explorer
         {
             InitializeComponent();
             filenameTextBox.Text = Settings.Default.DownloadFilename;
-            _extention = "txt";
-            _type = DownloadType.Text;
+            _extention = "hex";
+            _type = DownloadType.HexDump;
             startTextBox.Text = Settings.Default.StartHEX;
             endTextBox.Text = Settings.Default.EndHEX;
         }
@@ -75,18 +75,8 @@ namespace RC6502_Explorer
                     break;
                 case 2:
                     Console.WriteLine(typeComboBox.Text);
-                    _extention = "bin";
-                    _type = DownloadType.Binary;
-                    break;
-                case 3:
-                    Console.WriteLine(typeComboBox.Text);
                     _extention = "hex";
                     _type = DownloadType.HexDump;
-                    break;
-                default:
-                    Console.WriteLine(typeComboBox.Text);
-                    _extention = "txt";
-                    _type = DownloadType.Text;
                     break;
             }
             filenameTextBox.Enabled = true;
@@ -180,13 +170,16 @@ namespace RC6502_Explorer
                 }
             }
         }
+
+        private void DownloadForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
     public enum DownloadType
     {
         Basic,
         Assembly,
-        Binary,
         HexDump,
-        Text
     }
 }

@@ -19,11 +19,18 @@ namespace RC6502_Explorer
      
         public static event Action<string> portStatusChangeEvent;
         
+        private Thread _backgroundWorkerThread;
         private string _selectedPort = "COM1";
         private SerialPort _comPort;
         private bool _portConnected = false;
         private bool _downloading = false;
         private string _filename =  "";
+        private uint _startAddress = 0;
+        private uint _endAddress = 0;
+        private string _headder;
+        private uint _totalBytes = 0;
+        private uint _inBytes = 0;
+
 
         public MainForm()
         {
@@ -64,24 +71,27 @@ namespace RC6502_Explorer
 
         private void BackgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
-
+            int pcComplete = 0;
             BackgroundWorker worker = sender as BackgroundWorker;
-            while (true)
+            try
             {
-                for (int i = 0; i < 100; i++)
-                {
-                    worker.ReportProgress(i);
-                    System.Threading.Thread.Sleep(100);
+                _backgroundWorkerThread = Thread.CurrentThread;
 
-                }
-                for (int i = 100; i > 0; i--)
+                do
                 {
-                    worker.ReportProgress(i);
-                    System.Threading.Thread.Sleep(100);
+                    pcComplete = (int)Math.Floor(((double)_inBytes / (double)_totalBytes) * 100);
+                    if (pcComplete > 100) pcComplete = 100;
+                    worker.ReportProgress(pcComplete);
+                    Thread.Sleep(200);
+                } while (pcComplete != 100);
 
-                }
-                System.Threading.Thread.Sleep(100);
             }
+            catch (ThreadAbortException)
+            {
+                // Do your clean up here.
+            }
+            endSave();
+            worker.ReportProgress(0);
         }
 
         private void ThemeForm_UpdateAppearance()
@@ -96,38 +106,58 @@ namespace RC6502_Explorer
         private void DownloadForm_DownloadActionEvent(string file, DownloadType type, uint start, uint end)
         {
             toolStripStatusLabel4.Text = "Saving " + file;
-            if (!backgroundWorker1.IsBusy)
-            {
-                backgroundWorker1.RunWorkerAsync();
-            }
+           
             _filename = file;
             _downloading = true;
+            _startAddress = start;
+            _endAddress = end;
             switch (type)
             {
                 case DownloadType.Basic:
+                    _headder = "LIST";
+                    slowWriteToPort(_headder);
+                    slowWriteToPort("\n");
+                    _totalBytes = 999999;
                     break;
                 case DownloadType.Assembly:
-                    break;
-                case DownloadType.Binary:
+                    //slowWriteToPort("\n");
+                    _headder = "L\n";
+                    slowWriteToPort(_headder);
+                    _totalBytes = 999999;
                     break;
                 case DownloadType.HexDump:
-                    slowWriteToPort(start.ToString("X4") + "." + end.ToString("X4")+"\n");
+                    _headder = start.ToString("X4") + "." + end.ToString("X4");
+                    slowWriteToPort(_headder);
+                    slowWriteToPort("\n");
+                    double i = Math.Floor(((double)_endAddress - (double)_startAddress) / 8);
+                    _totalBytes = ((uint)i * 32) + 10;
                     break;
                 default:
                     break;
             }
+
+
+            if (!backgroundWorker1.IsBusy)
+            {
+                backgroundWorker1.RunWorkerAsync();
+            }
         }
         private void endSave()
         {
-            backgroundWorker1.CancelAsync();
             toolStripStatusLabel4.Text = "";
             _downloading = false;
+            _inBytes = 0;
         }
         private void saveText(string txt)
         {
-             var handle =  File.AppendText(_filename);
-             handle.Write(txt);
-             handle.Close();
+            if (txt.Contains(_headder)) txt = txt.Replace(_headder, "");
+            _inBytes += (uint)txt.Length; 
+            var handle =  File.AppendText(_filename);
+            handle.Write(txt);
+            handle.Close();
+
+            if (txt.Contains("?") || txt.Contains(">")) _inBytes = _totalBytes;
+         
         }
         private void MainForm_portStatusChangeEvent(string obj)
         {
@@ -336,6 +366,10 @@ namespace RC6502_Explorer
                         slowWriteToPort(e.KeyChar.ToString());
                         break;
                 }
+            }
+            else
+            {
+                _inBytes = _totalBytes;
             }
             e.Handled = true;
         }

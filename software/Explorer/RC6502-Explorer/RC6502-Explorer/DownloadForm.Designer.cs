@@ -88,9 +88,7 @@ namespace RC6502_Explorer
             this.typeComboBox.Items.AddRange(new object[] {
             "Basic",
             "Assembly",
-            "Binary",
-            "Hexadecimal",
-            "Text"});
+            "Hexadecimal"});
             this.typeComboBox.Location = new System.Drawing.Point(70, 22);
             this.typeComboBox.Name = "typeComboBox";
             this.typeComboBox.Size = new System.Drawing.Size(291, 21);
@@ -192,6 +190,7 @@ namespace RC6502_Explorer
             this.Name = "DownloadForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Download";
+            this.Load += new System.EventHandler(this.DownloadForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
