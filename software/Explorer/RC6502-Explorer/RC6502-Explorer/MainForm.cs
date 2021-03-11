@@ -120,7 +120,6 @@ namespace RC6502_Explorer
                     _totalBytes = 999999;
                     break;
                 case DownloadType.Assembly:
-                    //slowWriteToPort("\n");
                     _headder = "L\n";
                     slowWriteToPort(_headder);
                     _totalBytes = 999999;
@@ -129,8 +128,10 @@ namespace RC6502_Explorer
                     _headder = start.ToString("X4") + "." + end.ToString("X4");
                     slowWriteToPort(_headder);
                     slowWriteToPort("\n");
-                    double i = Math.Floor(((double)_endAddress - (double)_startAddress) / 8);
-                    _totalBytes = ((uint)i * 32) + 10;
+                    double totalAddresses = (double)_endAddress - (double)_startAddress;
+                    uint noLines = (uint)Math.Ceiling(totalAddresses / 8);
+                    _totalBytes = noLines * 8;
+                    _totalBytes += (uint)totalAddresses * 3; 
                     break;
                 default:
                     break;
