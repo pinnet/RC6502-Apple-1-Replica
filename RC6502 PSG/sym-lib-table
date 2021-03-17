@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name RC6502-PSG-rescue)(type Legacy)(uri "${KIPRJMOD}/RC6502 PSG-rescue.lib")(options "")(descr ""))
+  (lib (name SN76489AN)(type Legacy)(uri ${KIPRJMOD}/SN76489AN.lib)(options "")(descr ""))
+)
