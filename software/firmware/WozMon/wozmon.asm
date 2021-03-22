@@ -1,7 +1,10 @@
                 .CR     6502
-                .TF     wozmon.hex,HEX,8
+                .TF     wozmon.int,INT,8
                 .LF     wozmon.list
-;-------------------------------------------------------------------------
+
+
+
+;-----------------------------------------------------------------------------------------------------------------------------
 ;
 ;  The WOZ Monitor for the Apple 1
 ;  Written by Steve Wozniak 1976
@@ -21,6 +24,13 @@ L               .EQ     $28             Hex value parsing Low
 H               .EQ     $29             Hex value parsing High
 YSAV            .EQ     $2A             Used to see if hex value is given
 MODE            .EQ     $2B             $00=XAM, $7F=STOR, $AE=BLOCK XAM
+TMP0            .EQ     $C1
+STRL            .EQ     $2C
+STRH            .EQ     $2D 
+MEMSZL          .EQ     $2E
+MEMSZH          .EQ     $2F
+BCD             .EQ     $10
+NUMSTR          .EQ     $16
 
 IN              .EQ     $0200,$027F     Input buffer
 
@@ -43,7 +53,7 @@ DSPCR           .EQ     $D013           PIA.B display control register
 BS              .EQ     $DF             Backspace key, arrow left key
 CR              .EQ     $8D             Carriage Return
 ESC             .EQ     $9B             ESC key
-PROMPT          .EQ     "\"             Prompt character
+PROMPT          .EQ     '\'             Prompt character
 
 ;-------------------------------------------------------------------------
 ;  Let's get started
@@ -52,7 +62,8 @@ PROMPT          .EQ     "\"             Prompt character
 ;  line of the system. This ensures that the data direction registers
 ;  are selected.
 ;-------------------------------------------------------------------------
-                .OR     $FF00
+                .ORG    $FD00
+                .TA     $1D00
 RESET           CLD                     Clear decimal arithmetic mode
                 CLI
                 LDY     #%0111.1111     Mask for DSP data direction reg
@@ -63,7 +74,13 @@ RESET           CLD                     Clear decimal arithmetic mode
 
 ; Program falls through to the GETLINE routine to save some program bytes
 ; Please note that Y still holds $7F, which will cause an automatic Escape
-
+                
+                LDA     #BOOTMSG&$FF
+                STA     STRL
+                LDA     #BOOTMSG>>8
+                STA     STRH
+                JSR     STRECHO
+                LDA     #0                     
 ;-------------------------------------------------------------------------
 ; The GETLINE process
 ;-------------------------------------------------------------------------
@@ -113,6 +130,8 @@ NEXTITEM        LDA     IN,Y            Get character
                 BEQ     SETMODE         Set BLOCK XAM mode ("." = $AE)
                 CMP     #":"
                 BEQ     SETSTOR         Set STOR mode! $BA will become $7B
+                CMP     #"C"
+                BEQ     CLRRAM
                 CMP     #"R"
                 BEQ     RUN             Run the program! Forget the rest
                 STX     L               Clear input value (X=0)
@@ -161,7 +180,25 @@ TONEXTITEM      JMP     NEXTITEM        Get next command item.
 ;-------------------------------------------------------------------------
 ;  RUN user's program from last opened location
 ;-------------------------------------------------------------------------
-
+CLRRAM          LDA     #RTASMSG&$FF
+                STA     STRL
+                LDA     #RTASMSG>>8
+                STA     STRH
+                JSR     STRECHO                
+                JSR     RAMTAS
+                JSR     BINBCD16
+                LDA     #NUMSTR&$FF
+                STA     STRL
+                LDA     #NUMSTR>>8
+                STA     STRH
+                JSR     STRECHO
+                LDA     #MEMMSG&$FF
+                STA     STRL
+                LDA     #MEMMSG>>8
+                STA     STRH
+                JSR     STRECHO
+                LDY     #$7F
+                JMP     NOTCR
 RUN             JMP     (XAML)          Run user's program
 
 ;-------------------------------------------------------------------------
@@ -245,10 +282,161 @@ ECHO            BIT     DSP             DA bit (B7) cleared yet?
                 STA     DSP             Output character. Sets DA
                 RTS
 
+RAMTAS          TYA
+                PHA
+                LDA     #0
+                TYA
+RAMTZ0          STA     $0002,Y
+                STA     $0200,Y
+                STA     $0300,Y
+                INY
+                BNE     RAMTZ0
+RAMTBT          TYA 
+                LDA     #3
+                STA     TMP0+1
+RAMTZ1          LDA     #'.'
+                JSR     ECHO
+                INC     TMP0+1
+RAMTZ2          LDA     (TMP0),Y                                
+                TAX
+                LDA     #$55
+                STA     (TMP0),Y 
+                CMP     (TMP0),Y 
+                BNE     SIZE 
+                ROL     A 
+                STA     (TMP0),Y 
+                CMP     (TMP0),Y 
+                BNE     SIZE
+                TAX
+                STA     (TMP0),Y 
+                INY
+                BNE     RAMTZ2
+                BEQ     RAMTZ1
+SIZE            TYA
+                TAX
+                LDY     TMP0+1
+                CLC
+                STX     MEMSZL
+                STY     MEMSZH
+                LDA     #$0A
+                JSR     ECHO
+                LDA     #$0D
+                JSR     ECHO
+                PLA
+                TAY
+                RTS
+                
+STRECHO         
+                TYA
+                PHA     ;-- Sanatize Y Register -------------------------------- 
+
+                LDY     #$0
+.LOOP           LDA     (STRL),Y
+                BEQ     .JMPOUT
+                JSR     ECHO
+                INY
+                BNE     .LOOP
+
+.JMPOUT         PLA
+                TAY
+                RTS
+            
+BINBCD16
+                SED                 ; Switch to decimal mode        2
+                LDA     #0          ; Ensure the result is clear    2
+                STA     BCD+0       ;                               3
+                STA     BCD+1       ;                               3
+                STA     BCD+2       ;                               3       13
+ 
+CBIT1           ASL     MEMSZL       ; Shift out one bit             5
+                ROL     MEMSZL+1     ;                               5
+;               LDA     bcd+0       ;             
+                ADC     BCD+0        ; And add into result           3
+                STA     BCD+0        ;                               3
+                ASL     MEMSZL       ;                               5
+                ROL     MEMSZL+1     ;                               5
+                ADC     BCD+0        ;                               3
+                STA     BCD+0        ;                               3
+                ASL     MEMSZL       ;                               5
+                ROL     MEMSZL+1     ;                               5
+                ADC     BCD+0        ;                               3
+                STA     BCD+0        ;                               3
+                ASL     MEMSZL       ;                               5
+                ROL     MEMSZL+1     ;                               5
+                ADC     BCD+0        ;                               3
+                STA     BCD+0        ;                               3
+                ASL     MEMSZL       ;                               5
+                ROL     MEMSZL+1     ;                               5
+                ADC     BCD+0        ;                               3
+                STA     BCD+0        ;                               3
+                ASL     MEMSZL       ;                               5
+                ROL     MEMSZL+1     ;                               5
+                ADC     BCD+0        ;                               3
+                STA     BCD+0        ;                               3       96
+                LDX     #7           ;                               2       2
+CBIT7           ASL     MEMSZL       ; Shift out one bit             5
+                ROL     MEMSZL+1     ;                               5
+                LDA     BCD+0        ; And add into result           3
+                ADC     BCD+0        ;                               3
+                STA     BCD+0        ;                               3
+                LDA     BCD+1        ; propagating any carry         3
+                ADC     BCD+1        ;                               3
+                STA     BCD+1        ;                               3
+                DEX                  ; And repeat for next bit       2
+                BNE     CBIT7        ;                               3       33*7-1=230
+ 
+                LDX     #3          ;                                         2       2
+CBIT13          ASL     MEMSZL       ; Shift out one bit             5
+                ROL     MEMSZL+1     ;                               5
+                LDA     BCD+0        ; And add into result           3
+                ADC     BCD+0        ;                               3
+                STA     BCD+0        ;                               3
+                LDA     BCD+1        ; propagating any carry         3
+                ADC     BCD+1        ;                               3
+                STA     BCD+1        ;                               3
+                LDA     BCD+2        ; ... thru whole result         3
+                ADC     BCD+2        ;                               3
+                STA     BCD+2        ;                               3
+                DEX                  ; And repeat for next bit       2
+                BNE CBIT13           ;                               3       42*3-1=125
+                CLD                  ; Back to binary                2       2; tot 470
+                AND     #$0F 
+                ORA     #$30
+                STA     NUMSTR+1
+                LDA     BCD+1
+                AND     #$0F
+                ORA     #$30
+                STA     NUMSTR+3
+                LDA     BCD+1
+                LSR
+                LSR
+                LSR
+                LSR
+                ORA     #$30
+                STA     NUMSTR+2
+                LDA     BCD+0
+                AND     #$0F
+                ORA     #$30
+                STA     NUMSTR+5
+                LDA     BCD+0
+                LSR
+                LSR
+                LSR
+                LSR
+                ORA     #$30
+                STA     NUMSTR+4
+                LDA     #20
+                STA     NUMSTR+0
+                RTS                  ; All Done.
+;-----------------------------------------------------------------------------------                                             
+BOOTMSG         .AZ     / RC6502 WOZMON (c) Steve Wozniak 1976/,#$0A,#$0D,/(C)OLD START ?/,#$0A,#$0D
+MEMMSG          .AZ     / BYTES FREE/,#$0A,#$0D
+RTASMSG         .AZ     /TESTING MEMORY/,#$0A,#$0D
 ;-------------------------------------------------------------------------
 ;  Vector area
 ;-------------------------------------------------------------------------
-
+;               
+                .NO     $FFF8
                 .DA     $0000           Unused, what a pity
 NMI_VEC         .DA     $0F00           NMI vector
 RESET_VEC       .DA     RESET           RESET vector
